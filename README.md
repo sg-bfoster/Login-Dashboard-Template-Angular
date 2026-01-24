@@ -2,6 +2,23 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.0. It includes a minimal business login template with **Supabase Auth** and a dashboard shell (fixed title bar, fixed sidebar on desktop, collapsible sidebar with hamburger on mobile).
 
+## Quick start (use as template)
+
+1. **Use this repo as a template** on GitHub (use "Use this template" → "Create a new repository") or clone it.
+2. **Install and run:**
+   ```bash
+   npm install
+   npm start
+   ```
+   The app builds and serves at `http://localhost:4200/`. Login will not work until you add Supabase credentials.
+3. **Add Supabase credentials:** copy `.env.example` to `.env` and set `SUPABASE_URL` and `SUPABASE_ANON_KEY` (from [Supabase](https://supabase.com) → your project → **Settings → API**). Then run `npm start` again.
+
+**Node:** Use Node 20.19+ or 22.12+ (see `.nvmrc`).
+
+**To offer this as a template:** In your GitHub repo → **Settings** → check **Template repository**.
+
+---
+
 ## Supabase setup
 
 1. Create a project at [supabase.com](https://supabase.com) (or use an existing one).
