@@ -13,7 +13,7 @@
   </header>
 
   <aside class="sidebar" [class.is-open]="sidebarOpen()">
-    <nav>
+    <nav (click)="sidebarOpen.set(false)">
       <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
     </nav>
   </aside>
@@ -23,4 +23,6 @@
   <main class="main">
     <router-outlet />
   </main>
+
+  <footer class="app-footer">© {{ currentYear }}</footer>
 </div>

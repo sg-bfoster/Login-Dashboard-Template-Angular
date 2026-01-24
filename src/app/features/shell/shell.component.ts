@@ -14,6 +14,7 @@ export class ShellComponent implements OnDestroy {
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
+  protected readonly currentYear = new Date().getFullYear();
   protected readonly sidebarOpen = signal(false);
   private sub?: Subscription;
 
