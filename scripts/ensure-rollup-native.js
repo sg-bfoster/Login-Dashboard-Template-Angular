@@ -4,11 +4,16 @@
  * Works around an npm bug (https://github.com/npm/cli/issues/4828) where
  * optionalDependencies like @rollup/rollup-darwin-arm64 are sometimes skipped.
  * Run as postinstall. Can also be run manually: npm run fix:rollup
+ *
+ * On darwin we install BOTH arm64 and x64 so it works whether Node is native
+ * or Rosetta, and whether the user runs "nvm use" after "npm install".
  */
 
 const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+
+const VERSION = '4.52.3';
 
 const PLATFORM_PACKAGES = {
   'darwin:arm64': '@rollup/rollup-darwin-arm64',
@@ -17,45 +22,43 @@ const PLATFORM_PACKAGES = {
   'win32:x64': '@rollup/rollup-win32-x64-msvc',
 };
 
-function getVersion(pkg) {
-  try {
-    const p = path.join(process.cwd(), 'package.json');
-    const raw = JSON.parse(fs.readFileSync(p, 'utf8')).optionalDependencies?.[pkg] || '';
-    const m = (raw || '').match(/(\d+\.\d+\.\d+)/);
-    return m ? m[1] : '4.52.3';
-  } catch {
-    return '4.52.3';
-  }
+function pkgDir(pkg) {
+  return path.join(process.cwd(), 'node_modules', pkg);
 }
 
-function resolvePkg(pkg) {
-  try {
-    require.resolve(pkg, { paths: [process.cwd()] });
-    return true;
-  } catch (e) {
-    if (e.code !== 'MODULE_NOT_FOUND') throw e;
-    return false;
-  }
+function hasPkg(pkg) {
+  return fs.existsSync(path.join(pkgDir(pkg), 'package.json'));
 }
 
-function main() {
-  const key = `${process.platform}:${process.arch}`;
-  const pkg = PLATFORM_PACKAGES[key];
-  if (!pkg) return;
-
-  if (resolvePkg(pkg)) return;
-
-  const version = getVersion(pkg);
-  const cmd = `npm install ${pkg}@${version} --no-audit --no-fund --ignore-scripts`;
-  console.log(`[ensure-rollup] Installing ${pkg}@${version} (npm optionalDeps workaround)`);
+function tryInstall(pkg) {
+  if (hasPkg(pkg)) return true;
+  const cmd = `npm install ${pkg}@${VERSION} --no-audit --no-fund --ignore-scripts`;
+  console.log(`[ensure-rollup] Installing ${pkg}@${VERSION} (npm optionalDeps workaround)`);
   try {
     execSync(cmd, { stdio: 'inherit', cwd: process.cwd() });
   } catch (err) {
-    console.error(`[ensure-rollup] Install failed. Run manually:\n  ${cmd}`);
-    process.exit(1);
+    return false;
   }
-  if (!resolvePkg(pkg)) {
-    console.error(`[ensure-rollup] ${pkg} still not found after install. Run:\n  ${cmd}`);
+  return hasPkg(pkg);
+}
+
+function main() {
+  if (process.platform === 'darwin') {
+    const arm = tryInstall(PLATFORM_PACKAGES['darwin:arm64']);
+    const x64 = tryInstall(PLATFORM_PACKAGES['darwin:x64']);
+    if (!arm && !x64) {
+      console.error('[ensure-rollup] Could not install Rollup native for darwin. Run:\n  npm run fix:rollup');
+      process.exit(1);
+    }
+    return;
+  }
+
+  const key = `${process.platform}:${process.arch}`;
+  const pkg = PLATFORM_PACKAGES[key];
+  if (!pkg) return;
+  if (hasPkg(pkg)) return;
+  if (!tryInstall(pkg)) {
+    console.error(`[ensure-rollup] Install failed. Run:\n  npm install ${pkg}@${VERSION} --no-audit --no-fund --ignore-scripts`);
     process.exit(1);
   }
 }

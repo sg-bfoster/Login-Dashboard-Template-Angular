@@ -7,24 +7,27 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 1. **Use this repo as a template** on GitHub (use "Use this template" → "Create a new repository") or clone it.
 2. **Install and run:**
    ```bash
+   nvm use   # or: nvm install  (use Node 20.19+ from .nvmrc before installing)
    npm install
    npm start
    ```
    The app builds and serves at `http://localhost:4200/`. Login will not work until you add Supabase credentials.
 3. **Add Supabase credentials:** copy `.env.example` to `.env` and set `SUPABASE_URL` and `SUPABASE_ANON_KEY` (from [Supabase](https://supabase.com) → your project → **Settings → API**). Then run `npm start` again.
 
-**Node:** Use Node 20.19+ (see `.nvmrc`; run `nvm install` if needed).
+**Node:** Use Node 20.19+ before `npm install` (see `.nvmrc`; run `nvm use` or `nvm install`).
 
 **To offer this as a template:** In your GitHub repo → **Settings** → check **Template repository**.
 
 ### Troubleshooting
 
-- **`Cannot find module @rollup/rollup-darwin-arm64`** (Apple Silicon): npm sometimes skips optional deps. Run:
+- **`Cannot find module @rollup/rollup-darwin-arm64`**: Use Node 20.19+ **before** `npm install`, then do a clean install:
   ```bash
+  nvm use
   rm -rf node_modules package-lock.json && npm install
+  npm start
   ```
-  If it persists, run `npm run fix:rollup` then `npm start`.
-- **`The Angular CLI requires a minimum Node.js version of v20.19`**: Use Node 20.19+ or 22.12+ (e.g. `nvm use` or `nvm install`).
+  If it persists: `npm run fix:rollup` then `npm start`.
+- **`The Angular CLI requires a minimum Node.js version of v20.19`**: Run `nvm use` or `nvm install` so Node 20.19+ is active before `npm install` and `npm start`.
 
 ---
 
