@@ -13,9 +13,18 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
    The app builds and serves at `http://localhost:4200/`. Login will not work until you add Supabase credentials.
 3. **Add Supabase credentials:** copy `.env.example` to `.env` and set `SUPABASE_URL` and `SUPABASE_ANON_KEY` (from [Supabase](https://supabase.com) → your project → **Settings → API**). Then run `npm start` again.
 
-**Node:** Use Node 20.19+ or 22.12+ (see `.nvmrc`; run `nvm install` if the version is not installed).
+**Node:** Use Node 20.19+ (see `.nvmrc`; run `nvm install` if needed).
 
 **To offer this as a template:** In your GitHub repo → **Settings** → check **Template repository**.
+
+### Troubleshooting
+
+- **`Cannot find module @rollup/rollup-darwin-arm64`** (Apple Silicon): npm sometimes skips optional deps. Run:
+  ```bash
+  rm -rf node_modules package-lock.json && npm install
+  ```
+  If it persists, run `npm run fix:rollup` then `npm start`.
+- **`The Angular CLI requires a minimum Node.js version of v20.19`**: Use Node 20.19+ or 22.12+ (e.g. `nvm use` or `nvm install`).
 
 ---
 
@@ -26,7 +35,7 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 3. In **Authentication → Providers**, ensure **Email** is enabled.
 4. Copy `.env.example` to `.env` and set `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
 
-`supabase.config.ts` is committed with blank values. It is **overwritten at build time** from `.env` (or from `SUPABASE_URL` / `SUPABASE_ANON_KEY`). Use `npm start` and `npm run build` so the generate step runs. Do not commit `.env`; it is in `.gitignore`. To restore the blank before committing: `npm run config:blank`. Do not commit when it contains real credentials; `npm run check:pre-publish` will fail if that file is staged with them.
+`supabase.config.ts` is committed with blank values. It is **overwritten at build time** from `.env` (or from `SUPABASE_URL` / `SUPABASE_ANON_KEY`). Use `npm start` and `npm run build` so the generate step runs. Do not commit `.env`; it is in `.gitignore`. **Before committing:** run `npm run config:blank` to clear any generated credentials from `supabase.config.ts`, then `npm run check:pre-publish` to verify.
 
 **Heroku:** Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` in Config Vars. The build runs the generate script before `ng build`, so the app gets your credentials from the environment.
 

@@ -3,7 +3,7 @@
  * Ensures the Rollup native binary for this platform is installed.
  * Works around an npm bug (https://github.com/npm/cli/issues/4828) where
  * optionalDependencies like @rollup/rollup-darwin-arm64 are sometimes skipped.
- * Run as postinstall.
+ * Run as postinstall. Can also be run manually: npm run fix:rollup
  */
 
 const { execSync } = require('child_process');
@@ -17,12 +17,24 @@ const PLATFORM_PACKAGES = {
   'win32:x64': '@rollup/rollup-win32-x64-msvc',
 };
 
-function getRollupVersion() {
+function getVersion(pkg) {
   try {
-    const p = path.join(process.cwd(), 'node_modules', 'rollup', 'package.json');
-    return JSON.parse(fs.readFileSync(p, 'utf8')).version || '4.52.3';
+    const p = path.join(process.cwd(), 'package.json');
+    const raw = JSON.parse(fs.readFileSync(p, 'utf8')).optionalDependencies?.[pkg] || '';
+    const m = (raw || '').match(/(\d+\.\d+\.\d+)/);
+    return m ? m[1] : '4.52.3';
   } catch {
     return '4.52.3';
+  }
+}
+
+function resolvePkg(pkg) {
+  try {
+    require.resolve(pkg, { paths: [process.cwd()] });
+    return true;
+  } catch (e) {
+    if (e.code !== 'MODULE_NOT_FOUND') throw e;
+    return false;
   }
 }
 
@@ -31,16 +43,21 @@ function main() {
   const pkg = PLATFORM_PACKAGES[key];
   if (!pkg) return;
 
-  try {
-    require.resolve(pkg);
-    return;
-  } catch (e) {
-    if (e.code !== 'MODULE_NOT_FOUND') throw e;
-  }
+  if (resolvePkg(pkg)) return;
 
-  const version = getRollupVersion();
-  console.log(`[postinstall] Installing ${pkg}@${version} (npm optionalDeps workaround)`);
-  execSync(`npm install ${pkg}@${version} --no-save`, { stdio: 'inherit', cwd: process.cwd() });
+  const version = getVersion(pkg);
+  const cmd = `npm install ${pkg}@${version} --no-audit --no-fund --ignore-scripts`;
+  console.log(`[ensure-rollup] Installing ${pkg}@${version} (npm optionalDeps workaround)`);
+  try {
+    execSync(cmd, { stdio: 'inherit', cwd: process.cwd() });
+  } catch (err) {
+    console.error(`[ensure-rollup] Install failed. Run manually:\n  ${cmd}`);
+    process.exit(1);
+  }
+  if (!resolvePkg(pkg)) {
+    console.error(`[ensure-rollup] ${pkg} still not found after install. Run:\n  ${cmd}`);
+    process.exit(1);
+  }
 }
 
 main();

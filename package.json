@@ -6,6 +6,7 @@
     "check:pre-publish": "node scripts/check-pre-publish.js",
     "config:generate": "node scripts/generate-supabase-config.js",
     "config:blank": "node scripts/write-blank-supabase-config.js",
+    "fix:rollup": "node scripts/ensure-rollup-native.js",
     "postinstall": "node scripts/ensure-rollup-native.js",
     "prestart": "node scripts/generate-supabase-config.js",
     "prebuild": "node scripts/generate-supabase-config.js",
@@ -16,13 +17,13 @@
   },
   "private": true,
   "dependencies": {
-    "@supabase/supabase-js": "^2.47.0",
     "@angular/common": "^20.0.0",
     "@angular/compiler": "^20.0.0",
     "@angular/core": "^20.0.0",
     "@angular/forms": "^20.0.0",
     "@angular/platform-browser": "^20.0.0",
     "@angular/router": "^20.0.0",
+    "@supabase/supabase-js": "^2.47.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
@@ -33,12 +34,15 @@
     "@rollup/rollup-linux-x64-gnu": "4.52.3",
     "@rollup/rollup-win32-x64-msvc": "4.52.3"
   },
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "devDependencies": {
-    "dotenv": "^16.4.5",
     "@angular/build": "^20.0.0",
     "@angular/cli": "^20.0.0",
     "@angular/compiler-cli": "^20.0.0",
     "@types/jasmine": "~5.1.0",
+    "dotenv": "^16.4.5",
     "jasmine-core": "~5.7.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",

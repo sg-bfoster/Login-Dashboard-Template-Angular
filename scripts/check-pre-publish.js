@@ -15,7 +15,8 @@ if (!run('git rev-parse --is-inside-work-tree')) {
   process.exit(0);
 }
 
-if (!run('git check-ignore -q .env')) {
+// git check-ignore -q .env exits 0 when .env is ignored, 1 when not
+if (run('git check-ignore -q .env') === null) {
   console.error('ERROR: .env is not ignored. Do not commit it.');
   process.exit(1);
 }
