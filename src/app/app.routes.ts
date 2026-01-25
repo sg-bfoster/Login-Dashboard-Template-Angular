@@ -19,6 +19,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
+      {
+        path: 'about',
+        loadComponent: () =>
+          import('./features/about/about.component').then((m) => m.AboutComponent),
+      },
     ],
   },
   { path: '**', redirectTo: '' },
