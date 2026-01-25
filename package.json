@@ -6,6 +6,7 @@
     "check:pre-publish": "node scripts/check-pre-publish.js",
     "config:generate": "node scripts/generate-supabase-config.js",
     "config:blank": "node scripts/write-blank-supabase-config.js",
+    "postinstall": "node scripts/ensure-rollup-native.js",
     "prestart": "node scripts/generate-supabase-config.js",
     "prebuild": "node scripts/generate-supabase-config.js",
     "start": "ng serve",

@@ -13,9 +13,7 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
    The app builds and serves at `http://localhost:4200/`. Login will not work until you add Supabase credentials.
 3. **Add Supabase credentials:** copy `.env.example` to `.env` and set `SUPABASE_URL` and `SUPABASE_ANON_KEY` (from [Supabase](https://supabase.com) → your project → **Settings → API**). Then run `npm start` again.
 
-**Node:** Use Node 20.19+ or 22.12+ (see `.nvmrc`).
-
-**Troubleshooting:** If you see `Cannot find module @rollup/rollup-darwin-arm64` (or similar `@rollup/rollup-*`) on `npm start`, it is caused by an [npm bug](https://github.com/npm/cli/issues/4828) with optional dependencies. Try: `rm -rf node_modules package-lock.json && npm install`, then `npm start` again.
+**Node:** Use Node 20.19+ or 22.12+ (see `.nvmrc`; run `nvm install` if the version is not installed).
 
 **To offer this as a template:** In your GitHub repo → **Settings** → check **Template repository**.
 
