@@ -6,10 +6,12 @@
     "check:pre-publish": "node scripts/check-pre-publish.js",
     "config:generate": "node scripts/generate-supabase-config.js",
     "config:blank": "node scripts/write-blank-supabase-config.js",
-    "fix:rollup": "node scripts/ensure-rollup-native.js",
-    "postinstall": "node scripts/ensure-rollup-native.js",
-    "prestart": "node scripts/generate-supabase-config.js",
-    "prebuild": "node scripts/generate-supabase-config.js",
+    "fix:native": "node scripts/ensure-native-binaries.js",
+    "postinstall": "node scripts/ensure-native-binaries.js",
+    "prestart": "node scripts/ensure-native-binaries.js && node scripts/generate-supabase-config.js",
+    "prebuild": "node scripts/ensure-native-binaries.js && node scripts/generate-supabase-config.js",
+    "prewatch": "node scripts/ensure-native-binaries.js",
+    "pretest": "node scripts/ensure-native-binaries.js",
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
@@ -29,7 +31,7 @@
     "zone.js": "~0.15.0"
   },
   "optionalDependencies": {
-    "@rollup/rollup-darwin-arm64": "4.52.3",
+    "@rollup/rollup-darwin-arm64": "^4.52.3",
     "@rollup/rollup-darwin-x64": "^4.52.3",
     "@rollup/rollup-linux-x64-gnu": "4.52.3",
     "@rollup/rollup-win32-x64-msvc": "4.52.3"

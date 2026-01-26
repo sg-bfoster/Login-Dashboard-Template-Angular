@@ -20,13 +20,17 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 
 ### Troubleshooting
 
-- **`Cannot find module @rollup/rollup-darwin-arm64`**: Use Node 20.19+ **before** `npm install`, then do a clean install:
+- **Architecture mismatch errors** (`Cannot find module @rollup/rollup-darwin-arm64` or `@esbuild/darwin-arm64`): This happens when you install with one Node architecture and run with another (common with nvm + Rosetta on Mac). The build scripts auto-detect and fix this, but if it persists:
   ```bash
-  nvm use
-  rm -rf node_modules package-lock.json && npm install
+  npm run fix:native
   npm start
   ```
-  If it persists: `npm run fix:rollup` then `npm start`.
+  Or do a clean install with the correct Node version:
+  ```bash
+  nvm use
+  rm -rf node_modules && npm install
+  npm start
+  ```
 - **`The Angular CLI requires a minimum Node.js version of v20.19`**: Run `nvm use` or `nvm install` so Node 20.19+ is active before `npm install` and `npm start`.
 
 ---
