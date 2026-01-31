@@ -2,6 +2,16 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.0. It includes a minimal business login template with **Supabase Auth** and a dashboard shell (fixed title bar, fixed sidebar on desktop, collapsible sidebar with hamburger on mobile).
 
+## Screenshots
+
+### Login
+
+<img src="docs/images/LoginScreen.png" alt="Login screen" style="border:1px solid #ddd; border-radius:8px;" />
+
+### Dashboard
+
+<img src="docs/images/DashboardScreen.png" alt="Dashboard screen" style="border:1px solid #ddd; border-radius:8px;" />
+
 ## Quick start (use as template)
 
 1. **Use this repo as a template** on GitHub (use "Use this template" → "Create a new repository") or clone it.
