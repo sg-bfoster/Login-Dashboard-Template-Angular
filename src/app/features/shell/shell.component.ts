@@ -33,9 +33,12 @@ export class ShellComponent implements OnDestroy {
   }
 
   protected async logout(): Promise<void> {
-    await this.auth.signOut();
-    if (this.auth.providerName !== 'okta') {
-      this.router.navigate(['/login']);
+    try {
+      await this.auth.signOut();
+    } finally {
+      // Always navigate to /login so we don't remain on a protected route if the provider's
+      // logout redirect is blocked/misconfigured.
+      await this.router.navigateByUrl('/login', { replaceUrl: true });
     }
   }
 }

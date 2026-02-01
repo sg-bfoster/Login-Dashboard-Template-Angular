@@ -74,16 +74,23 @@ export class OktaAuthProvider implements AuthProvider {
 
   async signOut(): Promise<void> {
     const oktaAuth = this.client;
-    // Force a full Okta logout flow and return to /login.
-    // If we return to '/', the app may auto-navigate to dashboard after re-auth.
+    // Clear local app state immediately (in case logout redirect fails).
+    this._user.set(null);
+    this._isAuthenticated.set(false);
+
+    // Clear local tokens immediately (in case the browser navigates before the promise resolves).
+    // `clearTokensBeforeRedirect` should also do this, but being explicit makes the flow more reliable.
+    oktaAuth.tokenManager.clear();
+    await oktaAuth.authStateManager.updateAuthState();
+
+    // Force a full Okta logout flow. Use origin (/) as the post-logout redirect since it’s the
+    // most commonly configured Okta logout URI; the auth guard will route to /login if needed.
     await oktaAuth.signOut({
-      postLogoutRedirectUri: window.location.origin + '/login',
+      postLogoutRedirectUri: window.location.origin,
       clearTokensBeforeRedirect: true,
       revokeAccessToken: true,
       revokeRefreshToken: true,
     });
-    this._user.set(null);
-    this._isAuthenticated.set(false);
   }
 
   private syncFromAuthState(): void {
