@@ -1,25 +1,37 @@
 <div class="login">
   <div class="login-card">
     <h1>Sign in</h1>
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <div class="field">
-        <label for="email">Email</label>
-        <input id="email" type="email" formControlName="email" autocomplete="email" />
-        @if (form.controls.email.invalid && form.controls.email.touched) {
-          <span class="error">Enter a valid email.</span>
+    @if (providerName === 'supabase') {
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email" autocomplete="email" />
+          @if (form.controls.email.invalid && form.controls.email.touched) {
+            <span class="error">Enter a valid email.</span>
+          }
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" formControlName="password" autocomplete="current-password" />
+          @if (form.controls.password.invalid && form.controls.password.touched) {
+            <span class="error">Password is required.</span>
+          }
+        </div>
+        @if (errorMessage()) {
+          <p class="error-msg">{{ errorMessage() }}</p>
         }
-      </div>
-      <div class="field">
-        <label for="password">Password</label>
-        <input id="password" type="password" formControlName="password" autocomplete="current-password" />
-        @if (form.controls.password.invalid && form.controls.password.touched) {
-          <span class="error">Password is required.</span>
-        }
-      </div>
+        <button type="submit" [disabled]="form.invalid">Sign in</button>
+      </form>
+    } @else {
       @if (errorMessage()) {
         <p class="error-msg">{{ errorMessage() }}</p>
       }
-      <button type="submit" [disabled]="form.invalid">Sign in</button>
-    </form>
+      <div class="okta-widget">
+        @if (oktaWidgetLoading()) {
+          <app-loading-spinner [overlay]="true" [message]="'Loading sign-in…'" />
+        }
+        <div id="sign-in-widget"></div>
+      </div>
+    }
   </div>
 </div>

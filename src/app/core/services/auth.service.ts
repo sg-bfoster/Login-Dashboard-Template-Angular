@@ -1,29 +1,54 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
-import type { User } from '@supabase/supabase-js';
-import { SupabaseService } from './supabase.service';
+import { Injectable, Injector, computed, inject } from '@angular/core';
+import { authConfig } from '../config/auth.config';
+import { OktaAuthProvider } from '../auth/okta-auth.provider';
+import { SupabaseAuthProvider } from '../auth/supabase-auth.provider';
+import type { AuthProvider, AuthProviderName, PasswordSignInResult } from '../auth/auth-provider';
+import type { OktaAuth } from '@okta/okta-auth-js';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly supabase = inject(SupabaseService);
+  private readonly injector = inject(Injector);
 
-  readonly user = signal<User | null>(null);
-  readonly isAuthenticated = computed(() => !!this.user());
+  readonly providerName: AuthProviderName = authConfig.authProvider;
+
+  // Important: do NOT eagerly inject both providers, or we instantiate Supabase even in Okta mode.
+  private readonly provider: AuthProvider =
+    this.providerName === 'okta'
+      ? this.injector.get(OktaAuthProvider)
+      : this.injector.get(SupabaseAuthProvider);
+
+  readonly user = computed(() => this.provider.user());
+  readonly isAuthenticated = computed(() => this.provider.isAuthenticated());
 
   async initialize(): Promise<void> {
-    const {
-      data: { session },
-    } = await this.supabase.client.auth.getSession();
-    this.user.set(session?.user ?? null);
-    this.supabase.client.auth.onAuthStateChange((_event, session) => {
-      this.user.set(session?.user ?? null);
-    });
+    await this.provider.initialize();
   }
 
-  async signIn(email: string, password: string) {
-    return this.supabase.client.auth.signInWithPassword({ email, password });
+  saveReturnUrl(url: string): void {
+    this.provider.saveReturnUrl?.(url);
   }
 
-  async signOut() {
-    return this.supabase.client.auth.signOut();
+  async signIn(email: string, password: string): Promise<PasswordSignInResult> {
+    if (!this.provider.signInWithPassword) {
+      return { error: { message: 'Password sign-in is not enabled for the configured auth provider.' } };
+    }
+    return this.provider.signInWithPassword(email, password);
+  }
+
+  async handleLoginCallback(): Promise<void> {
+    await this.provider.handleLoginCallback?.();
+  }
+
+  getOktaAuthClientOrNull(): OktaAuth | null {
+    if (this.providerName !== 'okta') return null;
+    try {
+      return (this.provider as OktaAuthProvider).client;
+    } catch {
+      return null;
+    }
+  }
+
+  async signOut(): Promise<void> {
+    await this.provider.signOut();
   }
 }

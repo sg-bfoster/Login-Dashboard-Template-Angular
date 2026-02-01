@@ -34,4 +34,16 @@ if (staged.includes('src/app/core/config/supabase.config.ts')) {
   }
 }
 
+// If auth.config.ts is staged, ensure it stays blank (template invariant)
+if (staged.includes('src/app/core/config/auth.config.ts')) {
+  let content = '';
+  try {
+    content = run('git show :src/app/core/config/auth.config.ts') || '';
+  } catch {}
+  if (/issuer:\s*["'][^"']+["']/.test(content) || /clientId:\s*["'][^"']+["']/.test(content)) {
+    console.error('ERROR: auth.config.ts is staged with non-blank Okta values. Run: npm run config:blank');
+    process.exit(1);
+  }
+}
+
 console.log('check:pre-publish passed.');

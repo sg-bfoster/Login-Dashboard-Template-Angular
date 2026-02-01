@@ -34,6 +34,8 @@ export class ShellComponent implements OnDestroy {
 
   protected async logout(): Promise<void> {
     await this.auth.signOut();
-    this.router.navigate(['/login']);
+    if (this.auth.providerName !== 'okta') {
+      this.router.navigate(['/login']);
+    }
   }
 }

@@ -1,6 +1,11 @@
 # AngularApp
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.0. It includes a minimal business login template with **Supabase Auth** and a dashboard shell (fixed title bar, fixed sidebar on desktop, collapsible sidebar with hamburger on mobile).
+Angular 20 SPA template with a responsive dashboard shell and **pluggable authentication**:
+
+- **Supabase Auth**: email/password login
+- **Okta**: embedded Okta Sign-In Widget (OIDC)
+
+This repo is designed to be used as a template: you configure auth via `.env`, then `npm start` generates TypeScript config files at startup.
 
 ## Screenshots
 
@@ -12,92 +17,145 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 
 <img src="docs/images/DashboardScreen.png" alt="Dashboard screen" style="border:1px solid #ddd; border-radius:8px;" />
 
-## Quick start (use as template)
+## Requirements
 
-1. **Use this repo as a template** on GitHub (use "Use this template" → "Create a new repository") or clone it.
-2. **Install and run:**
-   ```bash
-   nvm use   # or: nvm install  (use Node 20.19+ from .nvmrc before installing)
-   npm install
-   npm start
-   ```
-   The app builds and serves at `http://localhost:4200/`. Login will not work until you add Supabase credentials.
-3. **Add Supabase credentials:** copy `.env.example` to `.env` and set `SUPABASE_URL` and `SUPABASE_ANON_KEY` (from [Supabase](https://supabase.com) → your project → **Settings → API**). Then run `npm start` again.
+- Node **>= 20.19** (see `.nvmrc`)
+- npm (ships with Node)
 
-**Node:** Use Node 20.19+ before `npm install` (see `.nvmrc`; run `nvm use` or `nvm install`).
+## 5-minute local start
 
-**To offer this as a template:** In your GitHub repo → **Settings** → check **Template repository**.
+```bash
+nvm use   # or: nvm install
+npm install
+cp .env.example .env
+npm start
+```
 
-### Troubleshooting
+Open `http://localhost:4200/`.
 
-- **Architecture mismatch errors** (`Cannot find module @rollup/rollup-darwin-arm64` or `@esbuild/darwin-arm64`): This happens when you install with one Node architecture and run with another (common with nvm + Rosetta on Mac). The build scripts auto-detect and fix this, but if it persists:
+### Configure auth (required)
+
+1. Open `.env`.
+2. Set `AUTH_PROVIDER` to either `supabase` or `okta`.
+3. Fill in the env vars for your chosen provider (see below).
+4. Restart `npm start` if it was already running.
+
+## Choose an auth provider
+
+- Pick **Supabase** if you want the fastest setup (email/password) and you already have or can create a Supabase project.
+- Pick **Okta** if you want an enterprise IdP-style login using the embedded Sign-In Widget.
+
+You can switch providers at any time by changing `AUTH_PROVIDER` and restarting the dev server.
+
+## Supabase setup (`AUTH_PROVIDER=supabase`)
+
+1. Create a project at [supabase.com](https://supabase.com) (or use an existing one).
+2. Supabase Dashboard → **Settings → API**:
+   - Copy **Project URL** → `SUPABASE_URL`
+   - Copy **anon public** key → `SUPABASE_ANON_KEY`
+3. Supabase Dashboard → **Authentication → Providers**:
+   - Ensure **Email** is enabled
+4. Update `.env`:
+
+```bash
+AUTH_PROVIDER=supabase
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_ANON_KEY=your_anon_key
+```
+
+## Okta setup (`AUTH_PROVIDER=okta`)
+
+1. Create a free org: sign up for an **Okta Integrator Free Plan** at `https://developer.okta.com/signup/`.
+2. Create an app integration:
+   - Admin Console → **Applications → Applications → Create App Integration**
+   - **Sign-in method**: OIDC - OpenID Connect
+   - **Application type**: Single-Page Application
+   - **Grant types**: enable **Refresh Token**, then under **Advanced** enable **Interaction Code**
+   - **Sign-in redirect URI**: `http://localhost:4200/login/callback`
+   - **Sign-out redirect URI**: `http://localhost:4200`
+   - Assign users who should be able to sign in
+3. Enable Interaction Code (if missing):
+   - Admin Console → **Settings → Account → Embedded widget sign-in support**
+   - Also ensure it’s enabled on the default authorization server rule:
+     **Security → API → Authorization Servers → default → Default Policy Rule → IF Grant type is → Advanced → Interaction Code**
+4. Add Trusted Origins:
+   - Admin Console → **Security → API → Trusted Origins**
+   - Add `http://localhost:4200` (enable CORS and Redirect as appropriate)
+5. Update `.env`:
+
+```bash
+AUTH_PROVIDER=okta
+OKTA_ISSUER=https://{yourOktaDomain}/oauth2/default
+OKTA_CLIENT_ID={yourSpaClientId}
+```
+
+## How startup config works (important)
+
+This repo **generates** TypeScript config files at startup/build time so you don’t have to commit secrets.
+
+- `npm start` runs `prestart`
+- `npm run build` runs `prebuild`
+
+Those scripts (a) ensure native binaries match your Node architecture, and (b) generate config files from `.env` or environment variables.
+
+Generated files (do not hand-edit; they are overwritten):
+
+- `src/app/core/config/supabase.config.ts` (from `SUPABASE_URL` / `SUPABASE_ANON_KEY`)
+- `src/app/core/config/auth.config.ts` (from `AUTH_PROVIDER` / `OKTA_*`)
+
+```mermaid
+flowchart TD
+  envVars[".env or environment variables"] --> genSupabase["generate-supabase-config.js"]
+  envVars --> genAuth["generate-auth-config.js"]
+  genSupabase --> supaTs["src/app/core/config/supabase.config.ts"]
+  genAuth --> authTs["src/app/core/config/auth.config.ts"]
+  supaTs --> ngBuildServe["ng serve / ng build"]
+  authTs --> ngBuildServe
+```
+
+## Useful commands
+
+- `npm start`: dev server at `http://localhost:4200` (runs config generation first)
+- `npm run build`: production build to `dist/` (runs config generation first)
+- `npm test`: unit tests via Karma
+- `npm run fix:native`: fix esbuild/Rollup architecture mismatch
+- `npm run config:blank`: clear generated values from committed config files
+- `npm run check:pre-publish`: verify no real credentials are present before pushing
+
+## Troubleshooting
+
+- **Angular CLI requires Node v20.19+**: run `nvm use` (or `nvm install`) before `npm install` / `npm start`.
+- **Architecture mismatch** (`Cannot find module @rollup/rollup-darwin-arm64` / `@esbuild/darwin-arm64`): common when switching between Rosetta x64 and native arm64 Node on macOS.
+
+  Try:
+
   ```bash
   npm run fix:native
   npm start
   ```
-  Or do a clean install with the correct Node version:
+
+  Or a clean reinstall:
+
   ```bash
   nvm use
   rm -rf node_modules && npm install
   npm start
   ```
-- **`The Angular CLI requires a minimum Node.js version of v20.19`**: Run `nvm use` or `nvm install` so Node 20.19+ is active before `npm install` and `npm start`.
 
----
+- **I changed `.env` but nothing happened**: stop and restart `npm start` (generation runs in `prestart`).
+- **Login fails**: confirm you set the correct variables for your selected `AUTH_PROVIDER` in `.env`.
 
-## Supabase setup
+## Security / committing
 
-1. Create a project at [supabase.com](https://supabase.com) (or use an existing one).
-2. In the dashboard: **Settings → API** — copy **Project URL** and the **anon public** key.
-3. In **Authentication → Providers**, ensure **Email** is enabled.
-4. Copy `.env.example` to `.env` and set `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
-
-`supabase.config.ts` is committed with blank values. It is **overwritten at build time** from `.env` (or from `SUPABASE_URL` / `SUPABASE_ANON_KEY`). Use `npm start` and `npm run build` so the generate step runs. Do not commit `.env`; it is in `.gitignore`. **Before committing:** run `npm run config:blank` to clear any generated credentials from `supabase.config.ts`, then `npm run check:pre-publish` to verify.
-
-**Heroku:** Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` in Config Vars. The build runs the generate script before `ng build`, so the app gets your credentials from the environment.
-
-**Note:** The free tier may pause projects after 1 week of inactivity; you can restore from the Supabase dashboard.
-
-## Development server
-
-Run `npm start` (or `ng serve`). The generate script runs first and overwrites `supabase.config.ts` from `.env`. Open `http://localhost:4200/`; the app reloads when you change source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- Do **not** commit `.env` (it’s ignored by git).
+- Before committing, run:
 
 ```bash
-ng generate component component-name
+npm run config:blank
+npm run check:pre-publish
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Using this repo as a template
 
-```bash
-ng generate --help
-```
-
-## Building
-
-Run `npm run build` (or `ng build`). The generate script runs first and overwrites `supabase.config.ts` from `.env` (or env vars). Output is in `dist/`.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- GitHub: **Use this template** → **Create a new repository**
+- (Optional) In your GitHub repo → **Settings** → enable **Template repository**
